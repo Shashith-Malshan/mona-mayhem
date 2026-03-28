@@ -1,17 +1,855 @@
 ---
-
 ---
 
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Mona Mayhem</title>
+		<title>Mona Mayhem — GitHub Contribution Battle Arena</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+			rel="stylesheet"
+		/>
+		<style>
+			/* ── Design Tokens ─────────────────────────────────────── */
+			:root {
+				--bg: #0a0a1a;
+				--bg-card: #10101f;
+				--green: #5fed83;
+				--purple: #8a2be2;
+				--red: #ff4757;
+				--yellow: #ffd700;
+				--text: #e8e8f0;
+				--text-muted: #7a7a9a;
+				--border: #1e1e3a;
+				--font: 'Press Start 2P', monospace;
+
+				/* GitHub dark contribution palette */
+				--c0: #161b22;
+				--c1: #0e4429;
+				--c2: #006d32;
+				--c3: #26a641;
+				--c4: #39d353;
+			}
+
+			/* ── Reset & Base ──────────────────────────────────────── */
+			*,
+			*::before,
+			*::after {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+
+			html {
+				scroll-behavior: smooth;
+			}
+
+			body {
+				font-family: var(--font);
+				background: var(--bg);
+				color: var(--text);
+				min-height: 100vh;
+				overflow-x: hidden;
+				position: relative;
+			}
+
+			/* CRT scanline overlay */
+			body::before {
+				content: '';
+				position: fixed;
+				inset: 0;
+				background: repeating-linear-gradient(
+					0deg,
+					transparent,
+					transparent 2px,
+					rgba(0, 0, 0, 0.07) 2px,
+					rgba(0, 0, 0, 0.07) 4px
+				);
+				pointer-events: none;
+				z-index: 9999;
+				animation: scanlines 8s linear infinite;
+			}
+
+			/* Subtle grid background */
+			body::after {
+				content: '';
+				position: fixed;
+				inset: 0;
+				background: linear-gradient(rgba(95, 237, 131, 0.03) 1px, transparent 1px),
+					linear-gradient(90deg, rgba(95, 237, 131, 0.03) 1px, transparent 1px);
+				background-size: 40px 40px;
+				pointer-events: none;
+				z-index: 0;
+			}
+
+			/* ── Keyframes ─────────────────────────────────────────── */
+			@keyframes scanlines {
+				0% {
+					background-position: 0 0;
+				}
+				100% {
+					background-position: 0 40px;
+				}
+			}
+
+			@keyframes neon-pulse {
+				0%,
+				100% {
+					text-shadow:
+						0 0 7px var(--green),
+						0 0 21px var(--green),
+						0 0 42px var(--green);
+				}
+				50% {
+					text-shadow:
+						0 0 4px var(--green),
+						0 0 11px var(--green),
+						0 0 20px var(--green);
+				}
+			}
+
+			@keyframes vs-glow {
+				0% {
+					color: var(--green);
+					text-shadow:
+						0 0 10px var(--green),
+						0 0 30px var(--green);
+				}
+				50% {
+					color: var(--purple);
+					text-shadow:
+						0 0 10px var(--purple),
+						0 0 30px var(--purple);
+				}
+				100% {
+					color: var(--green);
+					text-shadow:
+						0 0 10px var(--green),
+						0 0 30px var(--green);
+				}
+			}
+
+			@keyframes float-in {
+				from {
+					opacity: 0;
+					transform: translateY(20px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			@keyframes shimmer {
+				0% {
+					background-position: -200% center;
+				}
+				100% {
+					background-position: 200% center;
+				}
+			}
+
+			@keyframes loading-color {
+				0%,
+				100% {
+					color: var(--green);
+				}
+				50% {
+					color: var(--purple);
+				}
+			}
+
+			@keyframes spin {
+				to {
+					transform: rotate(360deg);
+				}
+			}
+
+			@keyframes blink {
+				0%,
+				100% {
+					opacity: 1;
+				}
+				50% {
+					opacity: 0;
+				}
+			}
+
+			/* ── Layout ────────────────────────────────────────────── */
+			.container {
+				position: relative;
+				z-index: 1;
+				max-width: 1100px;
+				margin: 0 auto;
+				padding: 0 1.5rem;
+			}
+
+			/* ── Header ────────────────────────────────────────────── */
+			header {
+				text-align: center;
+				padding: 3rem 1rem 2rem;
+			}
+
+			.site-title {
+				font-size: clamp(1.2rem, 4vw, 2rem);
+				color: var(--green);
+				letter-spacing: 0.05em;
+				animation: neon-pulse 3s ease-in-out infinite;
+				line-height: 1.4;
+				display: inline-block;
+			}
+
+			.site-subtitle {
+				margin-top: 1rem;
+				font-size: 0.5rem;
+				color: var(--text-muted);
+				letter-spacing: 0.1em;
+				text-transform: uppercase;
+			}
+
+			/* ── Battle Form ───────────────────────────────────────── */
+			.battle-form {
+				padding: 2rem 0;
+			}
+
+			.players {
+				display: grid;
+				grid-template-columns: 1fr auto 1fr;
+				gap: 1.5rem;
+				align-items: end;
+				animation: float-in 0.6s ease both;
+			}
+
+			.player-card {
+				background: var(--bg-card);
+				border: 1px solid var(--border);
+				border-radius: 4px;
+				padding: 1.5rem;
+				transition:
+					border-color 0.3s,
+					box-shadow 0.3s;
+			}
+
+			.player-card:focus-within {
+				border-color: var(--green);
+				box-shadow: 0 0 12px rgba(95, 237, 131, 0.2);
+			}
+
+			.player-label {
+				display: block;
+				font-size: 0.55rem;
+				color: var(--text-muted);
+				margin-bottom: 0.75rem;
+				letter-spacing: 0.12em;
+			}
+
+			.player-label span {
+				color: var(--green);
+			}
+
+			.player-input {
+				width: 100%;
+				background: transparent;
+				border: none;
+				border-bottom: 2px solid var(--border);
+				color: var(--text);
+				font-family: var(--font);
+				font-size: 0.65rem;
+				padding: 0.5rem 0;
+				outline: none;
+				transition: border-color 0.3s;
+				letter-spacing: 0.05em;
+			}
+
+			.player-input::placeholder {
+				color: var(--text-muted);
+				opacity: 0.6;
+			}
+
+			.player-input:focus {
+				border-bottom-color: var(--green);
+			}
+
+			.vs-divider {
+				text-align: center;
+				font-size: 1.5rem;
+				padding-bottom: 1.5rem;
+				animation: vs-glow 2s ease-in-out infinite;
+			}
+
+			/* ── Battle Button ─────────────────────────────────────── */
+			.battle-btn-wrap {
+				text-align: center;
+				margin-top: 2rem;
+				animation: float-in 0.8s ease both;
+			}
+
+			.battle-btn {
+				font-family: var(--font);
+				font-size: 0.7rem;
+				letter-spacing: 0.1em;
+				color: var(--bg);
+				background: var(--green);
+				border: none;
+				padding: 1rem 2.5rem;
+				cursor: pointer;
+				border-radius: 2px;
+				transition:
+					background 0.2s,
+					box-shadow 0.2s,
+					transform 0.1s;
+				position: relative;
+				overflow: hidden;
+			}
+
+			.battle-btn::after {
+				content: '';
+				position: absolute;
+				inset: 0;
+				background: linear-gradient(
+					90deg,
+					transparent 0%,
+					rgba(255, 255, 255, 0.25) 50%,
+					transparent 100%
+				);
+				background-size: 200% auto;
+				opacity: 0;
+				transition: opacity 0.3s;
+			}
+
+			.battle-btn:hover::after {
+				opacity: 1;
+				animation: shimmer 0.8s linear;
+			}
+
+			.battle-btn:hover {
+				background: #6ffda0;
+				box-shadow:
+					0 0 20px rgba(95, 237, 131, 0.5),
+					0 0 40px rgba(95, 237, 131, 0.25);
+			}
+
+			.battle-btn:active {
+				transform: scale(0.97);
+			}
+
+			.battle-btn:disabled {
+				opacity: 0.5;
+				cursor: not-allowed;
+				transform: none;
+			}
+
+			/* ── Status Messages ───────────────────────────────────── */
+			.status-area {
+				min-height: 3rem;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				margin: 1.5rem 0;
+			}
+
+			.error-msg {
+				font-size: 0.55rem;
+				color: var(--red);
+				text-align: center;
+				line-height: 1.8;
+				border: 1px solid var(--red);
+				padding: 0.75rem 1.25rem;
+				border-radius: 2px;
+				background: rgba(255, 71, 87, 0.08);
+			}
+
+			.loading-msg {
+				font-size: 0.55rem;
+				animation: loading-color 1s ease-in-out infinite;
+				text-align: center;
+			}
+
+			.loading-msg::after {
+				content: '...';
+				animation: blink 1s step-end infinite;
+			}
+
+			/* ── Results ───────────────────────────────────────────── */
+			.results-area {
+				padding: 1rem 0 4rem;
+			}
+
+			.battle-results {
+				display: grid;
+				grid-template-columns: 1fr auto 1fr;
+				gap: 1.5rem;
+				align-items: start;
+			}
+
+			.result-card {
+				background: var(--bg-card);
+				border: 1px solid var(--border);
+				border-radius: 4px;
+				padding: 1.5rem;
+				position: relative;
+				overflow: hidden;
+				animation: float-in 0.5s ease both;
+			}
+
+			/* Shimmer overlay */
+			.result-card::before {
+				content: '';
+				position: absolute;
+				inset: 0;
+				background: linear-gradient(
+					105deg,
+					transparent 40%,
+					rgba(95, 237, 131, 0.06) 50%,
+					transparent 60%
+				);
+				background-size: 200% 100%;
+				animation: shimmer 4s linear infinite;
+				pointer-events: none;
+			}
+
+			.result-card.winner {
+				border-color: var(--green);
+				box-shadow: 0 0 20px rgba(95, 237, 131, 0.2);
+			}
+
+			.result-card.loser {
+				border-color: var(--text-muted);
+				opacity: 0.85;
+			}
+
+			.result-username {
+				font-size: 0.65rem;
+				color: var(--green);
+				margin-bottom: 0.5rem;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+
+			.result-total {
+				font-size: 0.5rem;
+				color: var(--text-muted);
+				margin-bottom: 0.25rem;
+			}
+
+			.result-total strong {
+				color: var(--yellow);
+			}
+
+			.result-range {
+				font-size: 0.4rem;
+				color: var(--text-muted);
+				margin-bottom: 1rem;
+			}
+
+			/* ── Contribution Grid ─────────────────────────────────── */
+			.contrib-grid {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 2px;
+				margin-top: 0.75rem;
+			}
+
+			.contrib-day {
+				width: 11px;
+				height: 11px;
+				border-radius: 2px;
+				flex-shrink: 0;
+				transition: transform 0.15s;
+				cursor: default;
+				position: relative;
+			}
+
+			.contrib-day:hover {
+				transform: scale(1.5);
+				z-index: 10;
+				box-shadow: 0 0 6px rgba(95, 237, 131, 0.6);
+			}
+
+			/* Tooltip */
+			.contrib-day[data-tip]:hover::after {
+				content: attr(data-tip);
+				position: absolute;
+				bottom: calc(100% + 6px);
+				left: 50%;
+				transform: translateX(-50%);
+				white-space: nowrap;
+				font-family: var(--font);
+				font-size: 0.38rem;
+				color: var(--text);
+				background: #1a1a2e;
+				border: 1px solid var(--border);
+				padding: 4px 6px;
+				border-radius: 2px;
+				pointer-events: none;
+				z-index: 20;
+			}
+
+			.vs-result {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				gap: 0.5rem;
+				padding-top: 2rem;
+			}
+
+			.vs-result-text {
+				font-size: 2rem;
+				animation: vs-glow 2s ease-in-out infinite;
+			}
+
+			.winner-badge {
+				font-size: 0.4rem;
+				color: var(--yellow);
+				text-align: center;
+				line-height: 1.8;
+				letter-spacing: 0.08em;
+				white-space: nowrap;
+			}
+
+			/* ── Footer ────────────────────────────────────────────── */
+			footer {
+				text-align: center;
+				padding: 2rem 1rem;
+				border-top: 1px solid var(--border);
+				position: relative;
+				z-index: 1;
+			}
+
+			footer p {
+				font-size: 0.4rem;
+				color: var(--text-muted);
+				letter-spacing: 0.08em;
+			}
+
+			footer a {
+				color: var(--green);
+				text-decoration: none;
+			}
+
+			/* ── Responsive ────────────────────────────────────────── */
+			@media (max-width: 768px) {
+				.players {
+					grid-template-columns: 1fr;
+					gap: 1rem;
+				}
+
+				.vs-divider {
+					padding-bottom: 0;
+					font-size: 1rem;
+				}
+
+				.battle-results {
+					grid-template-columns: 1fr;
+				}
+
+				.vs-result {
+					flex-direction: row;
+					padding-top: 0;
+					justify-content: center;
+				}
+			}
+		</style>
 	</head>
 	<body>
-		<h1>Mona Mayhem</h1>
-		<p>Welcome to Mona Mayhem! Time to build a GitHub Contribution Battle Arena.</p>
+		<div class="container">
+			<header>
+				<h1 class="site-title">MONA MAYHEM</h1>
+				<p class="site-subtitle">GitHub Contribution Battle Arena</p>
+			</header>
+
+			<main>
+				<section class="battle-form">
+					<div class="players">
+						<div class="player-card">
+							<label class="player-label" for="p1">
+								<span>PLAYER 1</span> — enter username
+							</label>
+							<input
+								id="p1"
+								class="player-input"
+								type="text"
+								placeholder="e.g. octocat"
+								autocomplete="off"
+								spellcheck="false"
+							/>
+						</div>
+
+						<div class="vs-divider" aria-hidden="true">VS</div>
+
+						<div class="player-card">
+							<label class="player-label" for="p2">
+								<span>PLAYER 2</span> — enter username
+							</label>
+							<input
+								id="p2"
+								class="player-input"
+								type="text"
+								placeholder="e.g. torvalds"
+								autocomplete="off"
+								spellcheck="false"
+							/>
+						</div>
+					</div>
+
+					<div class="battle-btn-wrap">
+						<button id="battleBtn" class="battle-btn">⚔ BATTLE ⚔</button>
+					</div>
+				</section>
+
+				<div class="status-area" id="statusArea" aria-live="polite"></div>
+
+				<section class="results-area" id="resultsArea" hidden></section>
+			</main>
+		</div>
+
+		<footer>
+			<p>Built with 💜 for the <a href="https://github.com/copilot-dev-days/mona-mayhem" target="_blank">Mona Mayhem Workshop</a></p>
+		</footer>
+
+		<script>
+			/* ── TypeScript-style interfaces (JSDoc) ──────────────── */
+			/**
+			 * @typedef {{ weekday: number; count: number; level: number }} ContribDayV2
+			 * @typedef {{ index: number; first_day: string; contribution_days: ContribDayV2[] }} ContribWeekV2
+			 * @typedef {{ total_contributions?: number; total?: number; totalContributions?: number; from?: string; to?: string; range?: { start: string; end: string }; colors_full?: string[]; weeks?: ContribWeekV2[]; contributions?: { date?: string; count: number; color?: string; level?: number }[] }} ContribData
+			 */
+
+			/* ── Fallback colour palette (GitHub dark theme) ─────── */
+			const FALLBACK_COLORS = ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'];
+
+			/**
+			 * Pick a display colour for a contribution day.
+			 * Prefers the API-provided palette; falls back to our dark-theme defaults.
+			 * @param {number} level  0–4 intensity level
+			 * @param {string[] | undefined} palette  colors_full from the API
+			 * @returns {string}
+			 */
+			function levelColor(level, palette) {
+				const usingApiPalette = Array.isArray(palette) && palette.length === 5;
+				const colors = usingApiPalette ? palette : FALLBACK_COLORS;
+				// Replace the API's light "empty" colour (#ebedf0) with our dark-theme empty colour
+				if (usingApiPalette && level === 0) return FALLBACK_COLORS[0];
+				return colors[Math.min(Math.max(level, 0), 4)] ?? FALLBACK_COLORS[level] ?? FALLBACK_COLORS[0];
+			}
+
+			/**
+			 * Add `days` calendar days to a YYYY-MM-DD date string.
+			 * @param {string} dateStr
+			 * @param {number} days
+			 * @returns {string}
+			 */
+			function addDays(dateStr, days) {
+				const d = new Date(dateStr + 'T00:00:00Z');
+				d.setUTCDate(d.getUTCDate() + days);
+				return d.toISOString().slice(0, 10);
+			}
+
+			/**
+			 * Get the total contribution count from a ContribData object.
+			 * Handles both schema v2 (total_contributions) and legacy shapes.
+			 * @param {ContribData} data
+			 * @returns {number}
+			 */
+			function getTotal(data) {
+				return data.total_contributions ?? data.total ?? data.totalContributions ?? 0;
+			}
+
+			/**
+			 * Derive a 0–4 intensity level from a raw contribution count.
+			 * @param {number} count
+			 * @returns {number}
+			 */
+			function countToLevel(count) {
+				if (count === 0) return 0;
+				if (count <= 3) return 1;
+				if (count <= 6) return 2;
+				if (count <= 9) return 3;
+				return 4;
+			}
+
+			/**
+			 * Flatten a ContribData payload into an array of square descriptors.
+			 * Handles schema v2 (weeks[].contribution_days) and flat contributions[].
+			 * @param {ContribData} data
+			 * @returns {{ date: string; count: number; level: number }[]}
+			 */
+			function flattenDays(data) {
+				// Schema v2: weeks[].contribution_days
+				if (Array.isArray(data.weeks) && data.weeks.length > 0) {
+					return data.weeks.flatMap((week) => {
+						if (!Array.isArray(week.contribution_days)) return [];
+						return week.contribution_days.map((day) => ({
+							date: addDays(week.first_day, day.weekday),
+							count: day.count ?? 0,
+							level: day.level ?? 0,
+						}));
+					});
+				}
+				// Legacy flat contributions array
+				if (Array.isArray(data.contributions) && data.contributions.length > 0) {
+					return data.contributions.map((d) => ({
+						date: d.date ?? '',
+						count: d.count ?? 0,
+						level: d.level ?? countToLevel(d.count ?? 0),
+					}));
+				}
+				return [];
+			}
+
+			/**
+			 * Build the HTML for one player's result card.
+			 * @param {string} username
+			 * @param {ContribData} data
+			 * @returns {string}
+			 */
+			function buildCard(username, data) {
+				const days = flattenDays(data);
+				const total = getTotal(data);
+				const palette = data.colors_full;
+
+				const rangeStart = data.from ?? data.range?.start ?? (days[0]?.date ?? '');
+				const rangeEnd = data.to ?? data.range?.end ?? (days[days.length - 1]?.date ?? '');
+				const rangeText = rangeStart && rangeEnd ? `${rangeStart} → ${rangeEnd}` : '';
+
+				const squares = days
+					.map((d) => {
+						const col = levelColor(d.level, palette);
+						const tip = d.date ? `${d.date}: ${d.count}` : `${d.count}`;
+						return `<div class="contrib-day" style="background:${col}" data-tip="${tip}" aria-label="${tip}"></div>`;
+					})
+					.join('');
+
+				return `
+					<div class="result-username">${escapeHtml(username)}</div>
+					<div class="result-total">TOTAL: <strong>${total.toLocaleString()}</strong> contributions</div>
+					${rangeText ? `<div class="result-range">${escapeHtml(rangeText)}</div>` : ''}
+					<div class="contrib-grid">${squares || '<span style="font-size:0.45rem;color:var(--text-muted)">No contribution data found</span>'}</div>
+				`;
+			}
+
+			/**
+			 * Minimal HTML escape to prevent XSS.
+			 * @param {string} str
+			 * @returns {string}
+			 */
+			function escapeHtml(str) {
+				return String(str)
+					.replace(/&/g, '&amp;')
+					.replace(/</g, '&lt;')
+					.replace(/>/g, '&gt;')
+					.replace(/"/g, '&quot;');
+			}
+
+			/* ── DOM refs ─────────────────────────────────────────── */
+			const p1Input = /** @type {HTMLInputElement} */ (document.getElementById('p1'));
+			const p2Input = /** @type {HTMLInputElement} */ (document.getElementById('p2'));
+			const battleBtn = /** @type {HTMLButtonElement} */ (document.getElementById('battleBtn'));
+			const statusArea = /** @type {HTMLElement} */ (document.getElementById('statusArea'));
+			const resultsArea = /** @type {HTMLElement} */ (document.getElementById('resultsArea'));
+
+			/* ── State helpers ─────────────────────────────────────── */
+			function setLoading() {
+				statusArea.innerHTML = '<p class="loading-msg">FETCHING BATTLE DATA</p>';
+				resultsArea.hidden = true;
+				battleBtn.disabled = true;
+			}
+
+			function clearStatus() {
+				statusArea.innerHTML = '';
+				battleBtn.disabled = false;
+			}
+
+			function showError(msg) {
+				statusArea.innerHTML = `<p class="error-msg">${escapeHtml(msg)}</p>`;
+				battleBtn.disabled = false;
+			}
+
+			/* ── Core battle logic ─────────────────────────────────── */
+			async function runBattle() {
+				const u1 = p1Input.value.trim();
+				const u2 = p2Input.value.trim();
+
+				if (!u1 && !u2) {
+					showError('Enter both usernames to start the battle!');
+					return;
+				}
+				if (!u1) {
+					showError('Player 1 username is required.');
+					return;
+				}
+				if (!u2) {
+					showError('Player 2 username is required.');
+					return;
+				}
+
+				setLoading();
+
+				let d1, d2;
+				try {
+					[d1, d2] = await Promise.all([
+						fetch(`/api/contributions/${encodeURIComponent(u1)}`).then(async (r) => {
+							const json = await r.json();
+							if (!r.ok) throw new Error(json.error ?? `HTTP ${r.status}`);
+							return json;
+						}),
+						fetch(`/api/contributions/${encodeURIComponent(u2)}`).then(async (r) => {
+							const json = await r.json();
+							if (!r.ok) throw new Error(json.error ?? `HTTP ${r.status}`);
+							return json;
+						}),
+					]);
+				} catch (err) {
+					showError(err instanceof Error ? err.message : 'Unknown error. Please try again.');
+					return;
+				}
+
+				clearStatus();
+
+				const t1 = getTotal(d1);
+				const t2 = getTotal(d2);
+				const p1Wins = t1 > t2;
+				const tie = t1 === t2;
+
+				let winnerLabel = '';
+				if (tie) {
+					winnerLabel = "IT'S A TIE!";
+				} else {
+					winnerLabel = `🏆 ${escapeHtml(p1Wins ? u1 : u2)} WINS!`;
+				}
+
+				resultsArea.innerHTML = `
+					<div class="battle-results">
+						<div class="result-card ${!tie && p1Wins ? 'winner' : 'loser'}">
+							${buildCard(u1, d1)}
+						</div>
+						<div class="vs-result">
+							<div class="vs-result-text">VS</div>
+							<div class="winner-badge">${winnerLabel}</div>
+						</div>
+						<div class="result-card ${!tie && !p1Wins ? 'winner' : 'loser'}">
+							${buildCard(u2, d2)}
+						</div>
+					</div>
+				`;
+				resultsArea.hidden = false;
+				resultsArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			}
+
+			/* ── Event listeners ───────────────────────────────────── */
+			battleBtn.addEventListener('click', runBattle);
+
+			[p1Input, p2Input].forEach((input) => {
+				input.addEventListener('keydown', (e) => {
+					if (e.key === 'Enter') runBattle();
+				});
+			});
+		</script>
 	</body>
 </html>
